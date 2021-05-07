@@ -28,6 +28,7 @@ def call(){
 
     def images = []
 
+    println config.build_strategy
     switch (config.build_strategy) {
       case "docker-compose":
         error "docker-compose build strategy not implemented yet"
