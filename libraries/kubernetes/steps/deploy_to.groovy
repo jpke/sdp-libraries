@@ -95,7 +95,7 @@ void call(app_env){
             dir(working_directory){
                 this.update_values_file( values_file, config_repo )
                 this.do_release release, values_file
-                this.push_config_update values_file
+                // this.push_config_update values_file
             }
         }
       }
