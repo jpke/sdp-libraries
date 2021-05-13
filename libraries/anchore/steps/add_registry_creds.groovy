@@ -13,18 +13,19 @@ void call(){
         def docker_registry_credential_id = config.docker_registry_credential_id ?: "docker_registry"
         def docker_registry_name = config.docker_registry_name ?: ""
 
-        def generate_post_data(registry, registry_user, registry_password){
-        return JsonOutput.toJson([
-                registry: "$registry",
-                registry_name: "$registry",
-                registry_type: 'docker_v2',
-                registry_user: "$registry_user",
-                registry_verify: true,
-                registry_pass: "$registry_password"
-            ])
-        }
-
         node{
+
+            def generate_post_data(registry, registry_user, registry_password){
+                return JsonOutput.toJson([
+                        registry: "$registry",
+                        registry_name: "$registry",
+                        registry_type: 'docker_v2',
+                        registry_user: "$registry_user",
+                        registry_verify: true,
+                        registry_pass: "$registry_password"
+                    ])
+            }
+
             try {
                 withCredentials([
                     usernamePassword(credentialsId: config.cred, usernameVariable: 'ANCHORE_USERNAME', passwordVariable: "ANCHORE_PASSWORD"),
