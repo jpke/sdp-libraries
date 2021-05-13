@@ -34,7 +34,7 @@ void call(){
                 ]) {
                     inside_sdp_image "helm", { 
                         withKubeConfig([credentialsId: "default-kubeconfig" , contextName: "default"]) {
-                            sh "curl --header \"Content-Type: application/json\" -X POST -u $ANCHORE_USERNAME:$ANCHORE_PASSWORD $config.anchore_engine_url/registries -d '${generate_post_data(docker_registry_name, REGISTRY_USERNAME, REGISTRY_PASSWORD)}'"
+                            sh "curl --header \"Content-Type: application/json\" -X POST -u $ANCHORE_USERNAME:$ANCHORE_PASSWORD $ANCHORE_ENGINE_URL/registries -d '${generate_post_data(docker_registry_name, REGISTRY_USERNAME, REGISTRY_PASSWORD)}'"
 
                             sh 'curl -u $ANCHORE_USERNAME:$ANCHORE_PASSWORD $ANCHORE_ENGINE_URL/registries'
                         }
