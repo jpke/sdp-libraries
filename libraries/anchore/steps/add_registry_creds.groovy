@@ -35,7 +35,7 @@ void call(){
                         withKubeConfig([credentialsId: "default-kubeconfig" , contextName: "default"]) {
                             sh "curl --header \"Content-Type: application/json\" -X POST -u $ANCHORE_USERNAME:$ANCHORE_PASSWORD $config.anchore_engine_url/registries -d '${generate_post_data(docker_registry_name, REGISTRY_USERNAME, REGISTRY_PASSWORD)}'"
 
-                            sh 'curl -u $ANCHORE_USERNAME:$ANCHORE_PASSWORD $config.anchore_engine_url/registries'
+                            sh 'curl -u $ANCHORE_USERNAME:$ANCHORE_PASSWORD ${config.anchore_engine_url}/registries'
                         }
                     }
                 }
