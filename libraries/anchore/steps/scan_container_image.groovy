@@ -10,7 +10,6 @@ import groovy.json.*
 void call(){
     stage("Scanning Container Image: Anchore Scan"){
         def images = get_images_to_build()
-        echo "made it here..."
         println images
         def anchore_engine_base_url = config.anchore_engine_url
         def anchore_policy_id = config.policy_id ?: null
