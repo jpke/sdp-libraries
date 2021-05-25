@@ -22,6 +22,3 @@ for library in os.listdir(rootdir):
       readme = open(file).read()
       with mkdocs_gen_files.open(f"libraries/{library}.md", "w") as f:
         print(readme, file=f)
-    resources = os.path.join(rootdir, library, "resources")
-    if(os.path.exists(resources)):
-      copy_tree(resources, "/libraries/resources")
