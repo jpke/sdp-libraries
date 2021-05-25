@@ -1,27 +1,23 @@
-= Terraform
+# Terraform
 
-This library leverages https://www.terraform.io/intro/index.html[Terraform] to manage deployments of Infrastructure as Code to different environments. 
+This library leverages [Terraform](https://www.terraform.io/intro/index.html) to manage deployments of Infrastructure as Code to different environments. 
 
-== Steps Contributed
+## Steps Contributed
+---
 
-.Steps
-|===
-| *Step* | *Description* 
+| *Step* | *Description* |
+| ----------- | ----------- |
+| ``deploy_to(application_environment)`` | performs a terraform apply |
 
-| ``deploy_to(application_environment)``
-| performs a terraform apply 
+## Library Configuration Options
+---
 
-|===
-
-== Library Configuration Options
-
-=== Working Directory 
+### Working Directory 
 
 The working directory from which to run Terraform commands can be specified on the application environment pass to ``deploy_to`` or within the library configuration. 
 
-.Pipeline Configuration 
-[source, groovy]
-----
+Pipeline Configuration
+```groovy
 application_environments{
   dev
   prod{
@@ -36,11 +32,10 @@ libraries{
     working_directory = "default-directory"
   }
 }
-----
+```
 
-.Pipeline Template
-[source, groovy]
-----
+Pipeline Template
+```groovy
 /*
   because dev.terraform.working_directory is not set
   the library will fallback to the library's configuration
@@ -52,20 +47,16 @@ deploy_to dev
   the terraform commands will be executed within ./terraform-prod 
 */
 deploy_to prod 
-----
+```
 
-[NOTE]
-====
-If the working directory is not defined on either the library configuration or the application environment then the default value `"."` will be used. 
-====
+**Note** If the working directory is not defined on either the library configuration or the application environment then the default value `"."` will be used.
 
-=== Secrets 
+### Secrets 
 
 This library allows you to configure secrets as environment variables.  This can be done in both the library configuration or application environments.  There are two types of secrets currently supported:  secret text and username/password credentials. These credentials must be stored are in the Jenkins credential store. 
 
-.Library Secrets Syntax
-[source, groovy]
-----
+Library Secrets Syntax
+```groovy
 libraries{
   terraform{
     secrets{
@@ -83,15 +74,14 @@ libraries{
     }
   }
 }
-----
+```
 
 The name of each credential block is not important, and only used when describing configuration errors found by the step. 
 
 To pass secrets on a per application environment basis, define a `app_env.terraform.secrets` block: 
 
-.Application Environments Secrets Syntax
-[source, groovy]
-----
+Application Environments Secrets Syntax
+```groovy
 application_environments{
   prod{
     terraform{
@@ -111,21 +101,21 @@ application_environments{
     }
   }
 }
-----
+```
 
-[IMPORTANT]
-====
-If the same secret block is defined on both the application environment and the library configuration, the application environment secret definition will be used.
-====
+**Important** If the same secret block is defined on both the application environment and the library configuration, the application environment secret definition will be used.
 
-== Providers 
+## Providers
+---
 
-The https://github.com/boozallen/sdp-images/tree/master/terraform[SDP Terraform Pipeline Image] can bundle custom providers, if necessary. 
+The [SDP Terraform Pipeline Image](https://github.com/boozallen/sdp-images/tree/master/terraform) can bundle custom providers, if necessary. 
 
-=== Sysdig Provider
+### Sysdig Provider
 
-The https://github.com/draios/terraform-provider-sysdig[Sysdig Terraform Provider] is bundled with the terraform image. To configure this provider, it is advisable to create secrets for `SYSDIG_SECURE_API_TOKEN` and `SYSDIG_MONITOR_API_TOKEN`.  These environment variables can be consumed by the provider to configure the required secrets. 
+The [Sysdig Terraform Provider](https://github.com/draios/terraform-provider-sysdig) is bundled with the terraform image. To configure this provider, it is advisable to create secrets for `SYSDIG_SECURE_API_TOKEN` and `SYSDIG_MONITOR_API_TOKEN`.  These environment variables can be consumed by the provider to configure the required secrets. 
 
-== External Dependencies 
+## External Dependencies
+---
 
-== Troubleshooting
+## Troubleshooting
+---

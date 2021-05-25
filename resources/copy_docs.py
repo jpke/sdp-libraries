@@ -1,6 +1,5 @@
 import mkdocs_gen_files
 import os
-from distutils.dir_util import copy_tree
 
 # Move README to index unless there's already an index.md 
 if(os.path.exists("/docs/docs/index.md") != True): 
