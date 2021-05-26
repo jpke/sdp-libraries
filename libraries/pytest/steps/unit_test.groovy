@@ -9,7 +9,7 @@ package libraries.pytest.steps
     This step runs python unit tests using the pytest framework and generates a
     html report for archiving and junit xml for Jenkins consumption and display. 
 
-    for full configuration options, refer to docs/modules/pytest/pages/index.adoc
+    for full configuration options, refer to pytest documentation page
 
     more configuration options are welcome, please submit a pull request
 */

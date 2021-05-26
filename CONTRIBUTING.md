@@ -1,15 +1,17 @@
-# Contributing
+# Contributing Guide
 
 ## Repository Structure
+---
 
-| Repository Component | Description                                                                   |
-|----------------------|-------------------------------------------------------------------------------|
-| `README.md`          | Repository overview, gets compiled as the landing page for the documentation. |
-| `CONTRIBUTING.md`    | Explains how to develop against this repository                               |
-| `libraries`          | The base directory where the libraries are stored                             |
-| `docs`               | Documentation not specific to a particular library.                           |
+| Repository Component | Description                                                                               |
+|----------------------|-------------------------------------------------------------------------------------------|
+| `README.md`          | Repository overview, displays on Github.                                                  |
+| `docs/index.md`      | Repository overview, gets compiled as the landing page for the documentation              |
+| `docs`               | Documentation not specific to a particular library, and assets for library docs           |
+| `CONTRIBUTING.md`    | Explains how to develop against this repository                                           |
+| `libraries`          | The base directory where the libraries are stored                                         |
 
-### Libary Structure
+### Library Structure
 
 Within the `libraries` directory, there are several components to be aware of:
 
@@ -21,20 +23,41 @@ Within the `libraries` directory, there are several components to be aware of:
 | src       | The classes contributed by the library              |
 | test      | The unit tests for the library                      |
 
-For example, the current repository's `maven` library: 
+For example, the current repository's `a11y` library: 
 
 ``` text
-libraries/maven
+libraries/a11y
 ├── README.md
 ├── resources
 ├── src
 ├── steps
-│   └── build.groovy
+│   └── accessibility_compliance_test.groovy
 └── test
-    └── BuildSpec.groovy
+    └── AccessibilityComplianceTestSpec.groovy
 ```
 
-## Documentation 
+## Required Tools
+---
+
+| Tool | Purpose |
+| ----------- | ----------- |
+| [Gradle](https://gradle.org) | Used to run unit tests |
+| [Just](https://github.com/casey/just) | A task runner. Used here to automate common commands used during development. |
+| [Docker](https://www.docker.com/get-started) | Used to build the documentation for local preview |
+
+## Create a Library
+---
+
+Create a new library by running:
+
+```bash
+just create <library name>
+```
+
+This will produce a folder of the library name with the library structure described above stubbed out. Information for developing a new library can be found in [Create a New Library](./create-new-library/) page.
+
+## Documentation
+--- 
 
 This repository uses [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) to build the documentation.
 
@@ -58,7 +81,12 @@ just serve
 
 The documentation will be accessible at http://localhost:8000.
 
-## Running Tests
+## Testing
+---
+
+Unit tests can be written using [Jenkins Spock](https://github.com/ExpediaGroup/jenkins-spock).
+
+These tests should go in the `test` directory for each library.
 
 To run all the tests, run: 
 
@@ -85,6 +113,11 @@ just test "*.BuildSpec"
 ```
 
 ## Linting
+---
+
+This repository uses [npm-groovy-lint](https://github.com/nvuillam/npm-groovy-lint) with the recommended codenarc profile for Jenkins. 
+
+The `.groovylintrc.json` can be used to tune the rule profile. 
 
 To lint the libraries, run: 
 
@@ -92,4 +125,30 @@ To lint the libraries, run:
 just lint
 ```
 
-The output will go to standard out. 
+The output will go to standard out.
+
+## Release Management
+---
+
+This repository automates the create of release branches and tags as well as publishing the documentation for each version.
+
+### Release Automation
+
+To cut a new release, run: 
+
+``` bash
+just release $version
+```
+
+Which will:
+
+1. create a `release/$version` branch
+2. create a `$version` tag
+3. publish the documentation for the version and upate the `latest` documentation alias
+
+
+### Automated Changelogs
+
+[Release Drafter](https://github.com/release-drafter/release-drafter) is used to automate release note updates as Pull Requests are opened to `main`. 
+
+The configuration for Release Drafter exists in the `.github/release-drafter.yml` file and uses GitHub Actions. 

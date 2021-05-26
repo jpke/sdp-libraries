@@ -1,61 +1,28 @@
-# Home
+# SDP Pipeline Libraries
 
-This repository serves as a scaffold to jumpstart a new set of libraries for the [Jenkins Templating Engine (JTE)](https://plugins.jenkins.io/templating-engine).
+This repository contains [Booz Allen's](https://boozallen.com) pipeline libraries that integrate with the [Jenkins Templating Engine](https://plugins.jenkins.io/templating-engine/).
 
-It comes with some best practices baked in to help you get off on the right foot with JTE.
+If you want to learn more, the best place to get started is the [documentation](https://boozallen.github.io/sdp-docs/sdp-libraries/). 
 
-!!! note
-    Before jumping in, I'd recommend you familiarize yourself with JTE by watching the CDF webinar below. 
+## Usage
+---
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/FYLaoqn0pDE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+In order to use the different libraries in this repository, you can configure this repository as a library source, for a detailed example of how to do this you may refer to [this lab](https://boozallen.github.io/sdp-docs/learning-labs/1/jte-the-basics/3-first-libraries.html#_configure_the_library_source). 
 
-## Documentation 
+It is recommended that rather than using the master branch you pin your library source to a particular github release such as: https://github.com/boozallen/sdp-libraries/tree/release/2.0/libraries [like 2.0].  This helps to ensure that you have greater control in version management. 
 
-This repository uses [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) as the documentation framework.
+Also ensure that in addition to whichever library you wish to use you include the `sdp` library. This helps to resolve a number of dependency errors you may otherwise face.
 
-| Component                   | Description                                                                                                                                                                                          |
-|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Landing Page                | By default, the `README.md` at the root of this repository will become the landing page for the documentation.   This behavior is overridden if there is an `index.md` file in the `docs` directory. |
-| Contributing Page           | If present, the `CONTRIBUTING.md` is transformed into a `Contributing` page in the documentation site                                                                                                |
-| Library Documentation       | Each library should have a `README.md` that gets compiled into the documentation                                                                                                                     |
-| Miscellaneous Documentation | Any non-library specific documentation can be placed in the `docs` directory.                                                                                                                        |
+### Configuring the sdp library
 
-!!! note
-    These transformations happen by utilizing the `gen-files` plugin for MkDocs. The `resources/copy_docs.py` script performs the repository transformations for the documentation.
+As a dependency for every other library, it is important that the sdp library not only be included but also configured properly. For instructions on how to configure this library, please reference [this guide](https://boozallen.github.io/sdp-docs/sdp-libraries/libraries/sdp.html)
 
-## Release Management
+## Repository Structure
+---
 
-This repository automates the create of release branches and tags as well as publishing the documentation for each version.
+A detailed description is available in the [contributing page](./CONTRIBUTING.md)
 
-### Release Automation
+## Contributing
+---
 
-To cut a new release, run: 
-
-``` bash
-just release $version
-```
-
-Which will:
-
-1. create a `release/$version` branch
-2. create a `$version` tag
-3. publish the documentation for the version and upate the `latest` documentation alias
-
-
-### Automated Changelogs
-
-[Release Drafter](https://github.com/release-drafter/release-drafter) is used to automate release note updates as Pull Requests are opened to `main`. 
-
-The configuration for Release Drafter exists in the `.github/release-drafter.yml` file and uses GitHub Actions. 
-
-## Unit Tests
-
-Unit tests can be written using [Jenkins Spock](https://github.com/ExpediaGroup/jenkins-spock).
-
-These tests should go in the `test` directory for each library.
-
-## Linting
-
-This repository uses [npm-groovy-lint](https://github.com/nvuillam/npm-groovy-lint) with the recommended codenarc profile for Jenkins. 
-
-The `.groovylintrc.json` can be used to tune the rule profile. 
+We accept contributions via a fork-based development workflow. See the [contributing page](./CONTRIBUTING.md).
