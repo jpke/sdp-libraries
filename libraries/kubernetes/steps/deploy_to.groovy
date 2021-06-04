@@ -19,29 +19,29 @@ void call(app_env){
     // or - a globally defined github credential at the root of the pipeline config "github_credential"
     def git_cred = app_env.helm_configuration_repository_credential ?:
                    config.helm_configuration_repository_credential  ?:
-                   pipelineConfig.github_credential              ?:
+                   pipelineConfig.github_credential                 ?:
                    {error "GitHub Credential For Configuration Repository Not Defined"}()
 
     def branch = app_env.helm_configuration_repository_branch ?: 
-                 config.helm_configuration_repository_branch ?:
+                 config.helm_configuration_repository_branch ? :
                  "main"
 
     def working_directory = app_env.helm_configuration_repository_start_path ?: 
-                            config.helm_configuration_repository_start_path ?:
+                            config.helm_configuration_repository_start_path  ?:
                             "."
 
     /*
        k8s credential with kubeconfig 
     */
     def k8s_credential = app_env.k8s_credential ?:
-                            config.k8s_credential  ?:
-                            {error "Kubernetes Credential Not Defined"}()
+                         config.k8s_credential  ?:
+                         {error "Kubernetes Credential Not Defined"}()
     /*
        k8s context
     */
     def k8s_context = app_env.k8s_context ?:
-                  config.k8s_context            ?:
-                  {error "Kubernetes Context Not Defined"}()
+                      config.k8s_context  ?:
+                      {error "Kubernetes Context Not Defined"}()
 
     /*
        helm release name.
@@ -50,7 +50,7 @@ void call(app_env){
        will fail otherwise.
     */
     def release = app_env.release_name ?:
-                  app_env.short_name          ?:
+                  app_env.short_name   ?:
                   {error "App Env Must Specify release_name or short_name"}()
 
 
@@ -63,7 +63,6 @@ void call(app_env){
     def values_file = app_env.chart_values_file ?:
                       app_env.short_name ? "values.${app_env.short_name}.yaml" :
                       {error "Values File To Use For This Chart Not Defined"}()
-
 
     /*
        if this is a merge commit we need to retag the image so that the sha
@@ -88,6 +87,15 @@ void call(app_env){
     } else{
       echo "expecting image was already built"
     }
+
+    /*
+       optional docker registry credential, will call create_registry_secret if present
+    */
+    def docker_registry_cred = app_env.docker_registry_cred ?:
+                               config.docker_registry_cred  ?:
+                               ""
+
+    if(docker_registry_cred) create_registry_secret(app_env)
 
     withGit url: config_repo, cred: git_cred, branch: branch, {
       inside_sdp_image "helm", { 
