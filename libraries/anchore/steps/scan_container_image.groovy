@@ -7,9 +7,9 @@ package libraries.anchore.steps
 
 import groovy.json.*
 
-void call(){
+void call(app_env = null){
 
-    if(config.docker_registry_name && config.docker_registry_credential_id) add_registry_creds()
+    if(config.add_registry_creds) add_registry_creds(app_env)
 
     stage("Scanning Container Image: Anchore Scan"){
         node{

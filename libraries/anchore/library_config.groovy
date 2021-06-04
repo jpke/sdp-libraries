@@ -14,6 +14,7 @@ fields{
         docker_registry_name = String
         k8s_credential = String
         k8s_context = String
+        add_registry_creds = Boolean
         usePlugin = Boolean
         bailOnFail = Boolean
     }
