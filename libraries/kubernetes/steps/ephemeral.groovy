@@ -103,7 +103,7 @@ def prep_project(image_repo_project){
   def name = (env.REPO_NAME + '-' + env.GIT_SHA).replaceAll("_","-").replaceAll("/","-").replaceAll("[^a-zA-Z0-9-.]", "").take(53)
   echo "Ephemeral Environment Name: ${name}"
   try {
-    sh "kubectl create namespace  ${name}"
+    sh "kubectl create namespace ${name}"
   }catch(any){
     sh "kubectl delete namespace ${name} || true"
     throw any

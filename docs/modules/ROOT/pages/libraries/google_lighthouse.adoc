@@ -23,7 +23,7 @@ The great part about this library is that developers can also use Google Lightho
 
 | url
 | String
-| The url to scan 
+| The url to scan (setting in Application Environment will override value in Library config)
 | 
  
 | thresholds.performance.fail
@@ -68,15 +68,24 @@ The great part about this library is that developers can also use Google Lightho
 
 |===
 
+`url` is set to `application_environment.google_lighthouse.url` if available, and the library method is called as `accessibility_compliance_scan(<application environment>)`. If not, then it is set to the url provided in the Library config.
+
 
 [source,groovy]
 ----
+application_environments{
+  dev{
+    google_lighthouse{
+      url = "https://example.com"
+    }
+  }
+}
 libraries{
   google_lighthouse{
     url = "https://google.com"
     thresholds{
       performance{
-        fail = 75
+        fail = 75.0
       }
     }
   }

@@ -7,42 +7,60 @@ package libraries.anchore.steps
 
 import groovy.json.*
 
-void call(){
+void call(app_env = null){
+
+    if(config.add_registry_creds) add_registry_creds(app_env)
+
     stage("Scanning Container Image: Anchore Scan"){
-        def images = get_images_to_build()
-        def anchore_engine_base_url = config.anchore_engine_url
-        def anchore_policy_id = config.policy_id ?: null
-        def image_wait_timeout = config.image_wait_timeout ?: 300
-        def archive_only = false
-        def bail_on_fail = true
-        def perf_vuln_scan = true
-        def perf_policy_eval = true
-
-        if (config.archive_only != null) {
-            archive_only = config.archive_only
-        }
-        if (config.bail_on_fail != null) {
-            bail_on_fail = config.bail_on_fail
-        }
-        if (config.perform_vulnerability_scan != null) {
-            perf_vuln_scan = config.perform_vulnerability_scan
-        }
-        if (config.perform_policy_evaluation != null) {
-            perf_policy_eval = config.perform_policy_evaluation 
-        }
-
-        println """
-        Library Configuration: 
-          anchore_engine_url=${anchore_engine_base_url}
-          image_wait_timeout=${image_wait_timeout} 
-          policy_id=${anchore_policy_id} 
-          archive_only=${archive_only} 
-          bail_on_fail=${bail_on_fail} 
-          perform_policy_evaluation=${perf_policy_eval} 
-          perform_vulnerability_scan=${perf_vuln_scan}
-        """.stripIndent(4).trim()
-        
         node{
+            def images = get_images_to_build()
+
+            // option to use Anchore plugin, will only run scan on first image returned by get_images_to_build
+            if (config.usePlugin) {
+                def image = images[0]
+                def input_image_fulltag = "${image.registry}/${image.repo}:${image.tag}"
+
+                def annotations = config.annotations ?: []
+                def policyBundleId = config.policyBundleId ?: ""
+                def bailOnFail = config.bailOnFail == false ? false : true
+
+                writeFile file: 'anchore_images', text: input_image_fulltag
+                anchore name: 'anchore_images', engineCredentialsId: config.cred,  annotations: annotations, policyBundleId: policyBundleId, bailOnFail: bailOnFail
+                return
+            }
+
+            def anchore_engine_base_url = config.anchore_engine_url
+            def anchore_policy_id = config.policy_id ?: null
+            def image_wait_timeout = config.image_wait_timeout ?: 300
+            def archive_only = false
+            def bail_on_fail = true
+            def perf_vuln_scan = true
+            def perf_policy_eval = true
+
+            if (config.archive_only != null) {
+                archive_only = config.archive_only
+            }
+            if (config.bail_on_fail != null) {
+                bail_on_fail = config.bail_on_fail
+            }
+            if (config.perform_vulnerability_scan != null) {
+                perf_vuln_scan = config.perform_vulnerability_scan
+            }
+            if (config.perform_policy_evaluation != null) {
+                perf_policy_eval = config.perform_policy_evaluation 
+            }
+
+            println """
+            Library Configuration: 
+            anchore_engine_url=${anchore_engine_base_url}
+            image_wait_timeout=${image_wait_timeout} 
+            policy_id=${anchore_policy_id} 
+            archive_only=${archive_only} 
+            bail_on_fail=${bail_on_fail} 
+            perform_policy_evaluation=${perf_policy_eval} 
+            perform_vulnerability_scan=${perf_vuln_scan}
+            """.stripIndent(4).trim()
+
             sh "mkdir -p anchore_results"
             try {
                 withCredentials([usernamePassword(credentialsId: config.cred, passwordVariable: 'pass', usernameVariable: 'user')]) {      	

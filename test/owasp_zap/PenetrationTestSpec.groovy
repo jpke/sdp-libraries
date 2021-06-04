@@ -23,7 +23,7 @@ public class PenetrationTestSpec extends JTEPipelineSpecification {
       1 * getPipelineMock("error")(_)
   }
 
-  def "If env.FRONTEND_URL is null, config.target is Used" () {
+  def "If env.FRONTEND_URL and app_env.url is null, config.target is Used" () {
     setup:
       PenetrationTest.getBinding().setVariable("config", [target: "Kirk"])
     when:
@@ -41,6 +41,17 @@ public class PenetrationTestSpec extends JTEPipelineSpecification {
     then:
       1 * getPipelineMock("env.getProperty").call('FRONTEND_URL') >> "Bones"
       1 * getPipelineMock("sh")({it =~ / (zap-cli open-url) Bones (.+)/})
+  }
+
+  def "Target is set to app_env.url if env.FRONTEND_URL is null" () {
+    setup:
+      def app_env = [owasp_zap: [target: "app_env target"]]
+      PenetrationTest.getBinding().setVariable("config", [target: "Kirk"])
+    when:
+      PenetrationTest(app_env)
+    then:
+      1 * getPipelineMock("env.getProperty").call('FRONTEND_URL') >> null
+      1 * getPipelineMock("sh")({it =~ / (zap-cli open-url) app_env target (.+)/})
   }
 
   def "Default Vulnerability Treshold is High" () {

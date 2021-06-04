@@ -23,7 +23,7 @@ java8
 
 To run all tests, from the root of the sdp-libraries repository, run `just test`.
 
-You can also run a tests for a specific library with `just test "*.<library name>*"`. Or, you can run all tests in a specific file with `just test "*.<filename>"`.
+You can also run a tests for a specific library with `just test "*.<library name>*"`. Or, you can run all tests in a specific file with `just test "*.<filename>"`. More detail on filtering is available in the gradle docs https://docs.gradle.org/6.8.1/userguide/java_testing.html#test_filtering
 
 == Executing tests with Docker
 

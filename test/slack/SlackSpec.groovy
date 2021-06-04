@@ -46,4 +46,15 @@ public class SlackSpec extends JTEPipelineSpecification {
       0 * getPipelineMock("slackSend")(_)
   }
 
+  def "Custom Message Overrides Default Message" () {
+    setup:
+      SlackTest.getBinding().setVariable("currentBuild", [ result: "SUCCESS" ])
+    when:
+      SlackTest("a custom message")
+    then:
+      1 * getPipelineMock("slackSend")(_ as Map) >> { _arguments ->
+        assert _arguments[0]["message"] == "a custom message"
+      }
+  }
+
 }

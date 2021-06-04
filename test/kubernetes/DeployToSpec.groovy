@@ -3,7 +3,7 @@
   This software package is licensed under the Booz Allen Public License. The license can be found in the License file or at http://boozallen.github.io/licenses/bapl
 */
 
-package libraries.openshift
+package libraries.kubernetes
 
 public class DeployToSpec extends JTEPipelineSpecification {
 
@@ -14,21 +14,20 @@ public class DeployToSpec extends JTEPipelineSpecification {
 	}
 
   def setup() {
-    DeployTo = loadPipelineScriptForStep("openshift","deploy_to")
+    DeployTo = loadPipelineScriptForStep("kubernetes","deploy_to")
     explicitlyMockPipelineVariable("out")
     explicitlyMockPipelineVariable("push")
     explicitlyMockPipelineStep("withGit")
     explicitlyMockPipelineStep("inside_sdp_image")
     explicitlyMockPipelineStep("retag")
+    explicitlyMockPipelineStep("withKubeConfig")
 
     DeployTo.getBinding().setVariable("env", [REPO_NAME: "unit-test", GIT_SHA: "abcd1234"])
     DeployTo.getBinding().setVariable("token", "token")
 
     getPipelineMock("readYaml")(_ as Map) >> [
-      global: [
-        repos: [
-          [name: "unit-test", sha: "efgh5678"]
-        ]
+      image_shas: [
+        unit_test: "efgh5678"
       ]
     ]
   }
@@ -73,7 +72,7 @@ public class DeployToSpec extends JTEPipelineSpecification {
         assert _arguments[0][0].url == "app_env_hcr"
       }
   }
-  
+
   // helm_configuration_repository_credential (HCRC)
   def "Throw error if helm_configuration_repository_credential HCRC not defined" () {
     setup:
@@ -125,145 +124,191 @@ public class DeployToSpec extends JTEPipelineSpecification {
       }
   }
 
-  def "Throw error if tiller_namespace is not defined" () {
+  // k8s_credential
+  def "Throw error if k8s_credential is not defined" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', tiller_namespace: null]
-      DeployTo.getBinding().setVariable("config", [tiller_namespace: null])
+      def app_env = [k8s_credential: null]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("error")("Tiller Namespace Not Defined")
+      1 * getPipelineMock("error")("Kubernetes Credential Not Defined")
   }
 
-  def "Use tiller_namespace defined by the library config if not defined by the app_env" () {
+  def "Use Application Environment k8s_credential if defined" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', tiller_namespace: null]
-      DeployTo.getBinding().setVariable("config", [tiller_namespace: "config_tiller"])
+      def app_env = [k8s_credential: "appenv_k8s_cred"]
+      DeployTo.getBinding().setVariable("config", [k8s_credential: "config_k8s_cred"])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("withEnv")( _ ) >> { _arguments ->
-        assert _arguments[0][0] == ["TILLER_NAMESPACE=config_tiller"]
+      1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
+            assert _arguments[0][0] == ['credentialsId':'appenv_k8s_cred', 'contextName':null]
+      }
+  }
+  def "Use Library config k8s_credential if defined and Application Environment k8s_credential is null" () {
+    setup:
+      def app_env = []
+      DeployTo.getBinding().setVariable("config", [k8s_credential: "config_k8s_cred"])
+      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
+    when:
+      DeployTo(app_env)
+    then:
+      1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
+            assert _arguments[0][0] == ['credentialsId':'config_k8s_cred', 'contextName':null]
       }
   }
 
-  def "Use the tiller_namespace defined by the app_env if available" () {
+  // k8s_context
+  def "Throw error if k8s_context is not defined" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', tiller_namespace: "app_env_tiller"]
-      DeployTo.getBinding().setVariable("config", [tiller_namespace: "config_tiller"])
+      def app_env = [k8s_context: null]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("withEnv")( _ ) >> { _arguments ->
-        assert _arguments[0][0] == ["TILLER_NAMESPACE=app_env_tiller"]
+      1 * getPipelineMock("error")("Kubernetes Context Not Defined")
+  }
+
+  def "Use Application Environment k8s_context if defined" () {
+    setup:
+      def app_env = [k8s_context: "appenv_context"]
+      DeployTo.getBinding().setVariable("config", [k8s_context: "config_context"])
+      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
+    when:
+      DeployTo(app_env)
+    then:
+      1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
+            assert _arguments[0][0] == ['credentialsId':null, 'contextName':'appenv_context']
+      }
+  }
+  def "Use Library config k8s_context if defined and Application Environment k8s_context is null" () {
+    setup:
+      def app_env = []
+      DeployTo.getBinding().setVariable("config", [k8s_context: "config_context"])
+      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
+    when:
+      DeployTo(app_env)
+    then:
+      1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
+            assert _arguments[0][0] == ['credentialsId':null, 'contextName':'config_context']
       }
   }
 
-  def "Throw error if tiller_credential is not defined" () {
+  // release_name
+  def "Throw error if release_name is not defined" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', tiller_credential: null]
-      DeployTo.getBinding().setVariable("config", [tiller_credential: null])
+      def app_env = [release_name: null, short_name: null]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("error")("Tiller Credential Not Defined")
+      1 * getPipelineMock("error")("App Env Must Specify release_name or short_name")
   }
 
-  def "Use tiller_credential defined by the library config if not defined by the app_env" () {
+  def "Use Application Environment release_name if specified" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', tiller_credential: null]
-      DeployTo.getBinding().setVariable("config", [tiller_credential: "config_tc"])
+      def app_env = [release_name: "unit-test", short_name: "ut"]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("usernamePassword.call")( _ as Map ) >> { _arguments ->
-        assert _arguments[0].credentialsId == "config_tc"
-      }
+      1 * getPipelineMock("sh")({it =~ /helm upgrade.*unit-test.*/})
   }
 
-  def "Use the tiller_credential defined by the app_env if available" () {
+  def "Use Application Environment short_name if release_name is not specified" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', tiller_credential: "app_env_tc"]
-      DeployTo.getBinding().setVariable("config", [tiller_credential: "config_tc"])
+      def app_env = [release_name: null, short_name: "ut"]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("usernamePassword.call")( _ as Map ) >> { _arguments ->
-        assert _arguments[0].credentialsId == "app_env_tc"
-      }
+      1 * getPipelineMock("sh")({it =~ /helm upgrade.*ut \./})
   }
 
-  def "Throw error if openshift_url is not defined" () {
+  // release_namespace
+  def "Use Application Environment release_namespace if specified" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', openshift_url: null]
-      DeployTo.getBinding().setVariable("config", [url: null])
+      def app_env = [release_namespace: "app-env-unit-test-ns"]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("error")("OpenShift URL Not Defined")
+      1 * getPipelineMock("sh")({it =~ /helm upgrade.*app-env-unit-test-ns.*/})
   }
 
-  def "Use openshift_url defined by the library config if not defined by the app_env" () {
+  def "Use Library config release_namespace if Application Environment release_namespace is not specified" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', openshift_url: null]
-      DeployTo.getBinding().setVariable("config", [url: "config_url"])
+      def app_env = []
+      DeployTo.getBinding().setVariable("config", [release_namespace: "config-unit-test-ns"])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("sh")( {it =~ /oc login --insecure-skip-tls-verify config_url.+/} )
+      1 * getPipelineMock("sh")({it =~ /helm upgrade.*config-unit-test-ns.*/})
   }
 
-  def "Use the openshift_url defined by the app_env if available" () {
+  def "Skip release_namespace in helm upgrade call if not specified in Application Environment or Library config" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', openshift_url: "app_env_url"]
-      DeployTo.getBinding().setVariable("config", [url: "config_url"])
+      def app_env = []
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("sh")( {it =~ /oc login --insecure-skip-tls-verify app_env_url.+/} )
+      1 * getPipelineMock("sh")({it =~ /helm upgrade --install -f.*/})
   }
 
-  def "Throw error if both tiller_release_name and short_name are undefined" () {
+  /**************************
+   create_registry_secret option
+  ***************************/
+
+  def "Will not call create_registry_secret if docker_registry_cred if not defined in Application Environment or Library config" () {
     setup:
-      def app_env = [short_name: null, long_name: 'Environment', tiller_release_name: null]
-      DeployTo.getBinding().setVariable("config", [:])
+      def app_env = []
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
+      explicitlyMockPipelineStep("create_registry_secret")
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("error")( "App Env Must Specify tiller_release_name or short_name" )
+      0 * getPipelineMock("create_registry_secret")(app_env)
   }
 
-  def "Use app_env.short_name for release name if app_env.tiller_release_name is undefined" () {
+  def "Will call create_registry_secret if docker_registry_cred defined in Application Environment" () {
     setup:
-      def app_env = [short_name: 'short_name', long_name: 'Environment', tiller_release_name: null]
-      DeployTo.getBinding().setVariable("config", [:])
+      def app_env = [docker_registry_cred: "docker-cred"]
+      DeployTo.getBinding().setVariable("config", [])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
+      explicitlyMockPipelineStep("create_registry_secret")
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("sh")( { (it instanceof Map) ? it?.script =~ "helm history --max 1 short_name" : false} )
+      1 * getPipelineMock("create_registry_secret")(app_env)
   }
 
-  def "Use app_env.tiller_release_name for release name if available" () {
+  def "Will call create_registry_secret if docker_registry_cred defined in Library config" () {
     setup:
-      def app_env = [short_name: 'short_name', long_name: 'Environment', tiller_release_name: "app_env_trn"]
-      DeployTo.getBinding().setVariable("config", [:])
+      def app_env = []
+      DeployTo.getBinding().setVariable("config", [docker_registry_cred: "docker-cred"])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
+      explicitlyMockPipelineStep("create_registry_secret")
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("sh")( { (it instanceof Map) ? it?.script =~ "helm history --max 1 app_env_trn" : false} )
+      1 * getPipelineMock("create_registry_secret")(app_env)
   }
+
+  /**************************
+   helm deploy
+  ***************************/
 
   def "Throw error if no values file is defined" () {
     setup:
@@ -298,20 +343,20 @@ public class DeployToSpec extends JTEPipelineSpecification {
       1 * getPipelineMock("sh")( "rm special_values_file.yaml" )
   }
   
-  def "Checkout master branch of HCR if no helm_chart_branch from app_env" () {
+  def "Checkout main branch of HCR if no helm_configuration_repository_branch from app_env" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', helm_chart_branch: null]
+      def app_env = [short_name: 'env', long_name: 'Environment', helm_configuration_repository_branch: null]
       DeployTo.getBinding().setVariable("config", [:])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("withGit")( { (it[0] instanceof Map) ? it[0]?.branch == "master" : false} )
+      1 * getPipelineMock("withGit")( { (it[0] instanceof Map) ? it[0]?.branch == "main" : false} )
   }
   
-  def "Checkout app_env.helm_chart_branch of HCR if defined" () {
+  def "Checkout app_env.helm_configuration_repository_branch of HCR if defined" () {
     setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', helm_chart_branch: "Mercator"]
+      def app_env = [short_name: 'env', long_name: 'Environment', helm_configuration_repository_branch: "Mercator"]
       DeployTo.getBinding().setVariable("config", [:])
       DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
     when:
@@ -320,7 +365,6 @@ public class DeployToSpec extends JTEPipelineSpecification {
       1 * getPipelineMock("withGit")( { (it[0] instanceof Map) ? it[0]?.branch == "Mercator" : false} )
   }
   
-
   def "Don't retag the previous image if there is no Feature SHA" () {
     // and we can't expect such a corresponding image to exist
     setup:
@@ -444,41 +488,15 @@ public class DeployToSpec extends JTEPipelineSpecification {
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("readYaml")([file: "values.env.yaml"]) >>  [global: [repos: [[name: "unit-test", sha: "efgh5678"]]]]
-      1 * getPipelineMock("echo")("writing new Git SHA abcd1234 for repo unit-test in values.env.yaml")
+      1 * getPipelineMock("readYaml")([file: "values.env.yaml"]) >>  [image_shas: [unit_test : "efgh5678"]]
+      1 * getPipelineMock("echo")("writing new Git SHA abcd1234 to image_shas.unit_test in values.env.yaml")
       1 * getPipelineMock("sh")("rm values.env.yaml") // remove the old file to write a new one
-      1 * getPipelineMock("writeYaml")([file: "values.env.yaml", data: [global: [repos: [[name: "unit-test", sha: "abcd1234"]]]]])
+      1 * getPipelineMock("writeYaml")([file: "values.env.yaml", data: [image_shas: [unit_test : "abcd1234"]]])
   }
 
   /******************
    do_release() tests
   *******************/
-
-  def "If the chart was never deployed, use helm install" () {
-    setup:
-      def app_env = [short_name: 'env', long_name: 'Environment']
-      DeployTo.getBinding().setVariable("config", [:])
-      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
-    when:
-      DeployTo(app_env)
-    then:
-      //Check if chart exists by checking helm history; assert it doesn't exist
-      //NOTE: the helm history command's return value's truthyness seems unintuitive
-      1 * getPipelineMock("sh")( { (it instanceof Map) ? it?.script =~ "helm history --max 1 .+" : false} ) >> true
-      1 * getPipelineMock("sh")( { it =~ /helm install \..*/} )
-  }
-
-  def "If the chart has already been deployed, use helm upgrade" () {
-    setup:
-      def app_env = [short_name: 'env', long_name: 'Environment']
-      DeployTo.getBinding().setVariable("config", [:])
-      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
-    when:
-      DeployTo(app_env)
-    then:
-      1 * getPipelineMock("sh")( { (it instanceof Map) ? it?.script =~ "helm history --max 1 .+" : false} ) >> false
-      1 * getPipelineMock("sh")( { it =~ /helm upgrade (\-\-install|) env \..*/} )
-  }
 
   def "Chart deploys with the defined release and values_file" () {
     setup:
@@ -488,41 +506,13 @@ public class DeployToSpec extends JTEPipelineSpecification {
     when:
       DeployTo(app_env)
     then:
-      1 * getPipelineMock("sh")( { it =~ /helm (upgrade (\-\-install|) env \.|install \. env) -f values.env.yaml/} )
-  }
-
-  /*****************
-   oc_login() tests
-  *****************/
-
-  def "The step logs into the specified Openshift cluster with the provided token" () {
-    setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', openshift_url: "specified_url"]
-      DeployTo.getBinding().setVariable("config", [:])
-      DeployTo.getBinding().setVariable("token", "provided_token")
-      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
-    when:
-      DeployTo(app_env)
-    then:
-      1 * getPipelineMock("sh")( {it =~ /oc login .* specified_url --token=provided_token.*/} )
-  }
-
-  def "If the credential is not for a token, check if it's a username/password" () {
-    setup:
-      def app_env = [short_name: 'env', long_name: 'Environment', openshift_url: "specified_url"]
-      DeployTo.getBinding().setVariable("config", [:])
-      DeployTo.getBinding().setVariable("user", "user")
-      DeployTo.getBinding().setVariable("pipelineConfig", [github_credential: null])
-    when:
-      DeployTo(app_env)
-    then:
-      1 * getPipelineMock("sh")( {it =~ /oc login .* specified_url --token=token.*/} ) >> {throw new DummyException("Bad Token")}
-      1 * getPipelineMock("sh")( {it =~ /oc login .* specified_url -u user -p token.*/} )
+      1 * getPipelineMock("sh")( { it =~ /helm upgrade --install -f values.env.yaml env \./} )
   }
 
   /*************************
    push_config_update tests
   *************************/
+
   def "Changes to Values file are committed back to GitHub" () {
     setup:
       def app_env = [short_name: 'env', long_name: 'Environment']
@@ -534,7 +524,7 @@ public class DeployToSpec extends JTEPipelineSpecification {
       1 * getPipelineMock("echo")("updating values file -> values.env.yaml")
       1 * getPipelineMock("git")( [add: "values.env.yaml"] )
       1 * getPipelineMock("git")( [commit: "Updating values.env.yaml for unit-test images"])
-      1 * getPipelineMock("git")( getPipelineMock("push") )
+      1 * getPipelineMock("git")("push")
   }
   
 }

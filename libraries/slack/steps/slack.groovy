@@ -5,14 +5,20 @@
 
 package libraries.slack.steps
 
-def call(){
+def call(customMessage = ""){
     switch(currentBuild.result){
         case null: // no result set yet means success
         case "SUCCESS":
-          slackSend color: "good", message: "Build Successful: ${env.JOB_URL}"
+          message = customMessage ?: "Build Successful: ${env.JOB_URL}"
+          slackSend color: "good", message: message
           break;
         case "FAILURE":
-          slackSend color: '#ff0000', message: "Build Failure: ${env.JOB_URL}"
+          message = customMessage ?: "Build Failure: ${env.JOB_URL}"
+          slackSend color: '#ff0000', message: message
+          break;
+        case "UNSTABLE":
+          message = customMessage ?: "Build Unstable: ${env.JOB_URL}"
+          slackSend color: '#FFFF00', message: message
           break;
         default:
           echo "Slack Notifier doing nothing: ${currentBuild.result}"

@@ -5,10 +5,20 @@
 
 package libraries.google_lighthouse.steps
 
-void call(){
+void call(app_env = []){
     stage("Accessibility Compliance: Google Lighthouse"){
         inside_sdp_image "google-lighthouse", {
-            String url = config.url 
+            String url = app_env?.google_lighthouse?.url ?: config.url ?: {
+                error """
+                Google Lighthouse url undefined.  Set:
+                libraries{
+                    google_lighthouse{
+                        url = <url_to_scan>
+                    }
+                }
+                """.stripIndent(6)
+            }()
+
             String resultsDir = "google-lighthouse"
             sh """
             mkdir -p ${resultsDir}; 

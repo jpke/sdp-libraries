@@ -19,7 +19,7 @@ def generate_post_data(registry, registry_user, registry_password){
 }
 
 void call(app_env = null){
-    stage("Ensure Anchore has Docker Creds"){
+    stage("Configure Anchore Auth"){
 
         /*
         Docker registry creds for pulling helm image (has kubectl)

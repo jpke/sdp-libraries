@@ -5,10 +5,10 @@
 
 package libraries.owasp_zap.steps
 
-void call() {
+void call(app_env = []) {
   stage "Penetration Test", {
 
-    def target = env.FRONTEND_URL ?: config.target ?: {
+    def target = env.FRONTEND_URL ?: app_env?.owasp_zap?.target ?: config.target ?: {
       error """
       OWASP Zap target url undefined.  Set:
       libraries{

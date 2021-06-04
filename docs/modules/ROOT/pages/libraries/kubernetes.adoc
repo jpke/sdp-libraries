@@ -8,11 +8,14 @@ This library allows you to perform deployments to static or ephemeral Kubernetes
 |===
 | Step | Description 
 
-| ``deploy_to()``
+| ``deploy_to(ApplicationEnvironment)``
 | Performs a deployment using Helm 
 
 | ``ephemeral(Closure body, ApplicationEnvironment)``
 | Creates a short-lived application environment for testing
+
+| ``create_registry_secret()``
+| Creates a docker-registry secret in Kubernetes from a credential stored in Jenkins
 
 |===
 
@@ -158,6 +161,26 @@ libraries{
 }
 ----
 
+=== Creating Docker Registry Secrets
+
+If an appliation's docker image is stored in a registry requiring authentication, Kubernetes will need an imagePullSecret specified. If the registry credentials are stored as a Credential in Jenkins, `create_registry_secret` can be used to create a Kubernetes `docker-registry` secret. This can be used for the imagePullSecret.
+
+`create_registry_secret` can be called diretly, or can be called during `deploy_to`. To call `create_registry_secret` within `deploy_to`, include `docker_registry_cred`. The following parameters can be configured for `create_registry_secret` in either the Library configuration or the Application Environment. Only `deployment_namespace` and `deployment_image_pull_secret_name` are optional.
+
+[source,groovy]
+----
+libraries{
+  kubernetes{
+    k8s_credential = "default-kubeconfig"
+    k8s_context = "local"
+    docker_registry_cred = "docker-registry"
+    docker_registry_addr = "docker.io"
+    // deployment_namespace = "default"
+    // deployment_image_pull_secret_name = "registry"
+  }
+}
+----
+
 === Putting It All Together
 
 
@@ -200,9 +223,29 @@ libraries{
 | 
 | app_env
 
+| release_namespace
+| Optional Kubernetes namespace to deploy helm release and/or docker-registry secret into; defaults to namespace specified in k8s_context
+| 
+| both
+
 | promote_previous_image
 | Whether or not to promote a previously-built image
 | (Boolean) true
+| both
+
+| docker_registry_cred
+| Jenkins credential for a docker registry
+| 
+| both
+
+| docker_registry_addr
+| Address of a docker registry
+| 
+| both
+
+| deployment_image_pull_secret_name
+| Name to give to the Kubernetes docker-registry secret
+| registry
 | both
 
 |===

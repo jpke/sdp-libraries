@@ -31,12 +31,19 @@ https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project[OWASP Zed Attack 
 
 |===
 
-`target` is set to `env.FRONTEND_URL` if available. If not then it uses the provided URL. If no URL is provided an error is thrown.
+`target` is set to `env.FRONTEND_URL` if available. If not, then it is set to `application_environment.owasp_zap.target` if method if called with penetration_test(<application environment>). If that is null, the URL provided in the Library config target is used. If no URL is provided an error is thrown.
 
 === Example Configuration Snippet
 
 [source,groovy]
 ----
+application_environments{
+  dev{
+    owasp_zap{
+      target = "https://example.dev.com"
+    }
+  }
+}
 libraries{
   owasp_zap{
     target = "https://example.com"
@@ -44,6 +51,8 @@ libraries{
   }
 }
 ----
+
+Assuming `env.FRONTEND_URL` is null, in this example, Zap would use the target specified in `application_environment.owasp_zap.target`, since it overrides the target specified in `libraries.owasp_zap.target`.
 
 == Results
 
