@@ -7,7 +7,7 @@ package libraries.anchore.steps
 
 import groovy.json.*
 
-void call()){
+void call(){
 
     if(config.docker_registry_name && config.docker_registry_credential_id) add_registry_creds()
 
