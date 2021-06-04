@@ -22,7 +22,7 @@ void call(app_env = null){
 
                 def annotations = config.annotations ?: []
                 def policyBundleId = config.policyBundleId ?: ""
-                def bailOnFail = config.bailOnFail ?: true
+                def bailOnFail = config.bailOnFail == false ? false : true
 
                 writeFile file: 'anchore_images', text: input_image_fulltag
                 anchore name: 'anchore_images', engineCredentialsId: config.cred,  annotations: annotations, policyBundleId: policyBundleId, bailOnFail: bailOnFail
