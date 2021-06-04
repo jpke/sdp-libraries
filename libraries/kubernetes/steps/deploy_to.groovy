@@ -23,7 +23,7 @@ void call(app_env){
                    {error "GitHub Credential For Configuration Repository Not Defined"}()
 
     def branch = app_env.helm_configuration_repository_branch ?: 
-                 config.helm_configuration_repository_branch ? :
+                 config.helm_configuration_repository_branch  ?:
                  "main"
 
     def working_directory = app_env.helm_configuration_repository_start_path ?: 
