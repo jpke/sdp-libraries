@@ -87,6 +87,11 @@ The Anchore library implements a comprehensive container image vulnerability and
 | Option to use Anchore plugin to run scan
 | false
 
+| bailOnFail
+| Boolean
+| Option to stop pipeline is Anchore plugin scan fails to satisfy policy
+| true
+
 
 |===
 
