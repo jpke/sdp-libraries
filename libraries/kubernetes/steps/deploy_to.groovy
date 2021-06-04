@@ -95,7 +95,11 @@ void call(app_env){
                                config.docker_registry_cred  ?:
                                ""
 
-    if(docker_registry_cred) create_registry_secret(app_env)
+    println "docker_registry_cred: $docker_registry_cred"
+    if(docker_registry_cred) {
+      println "calling create_registry_secret"
+      create_registry_secret(app_env)
+    }
 
     withGit url: config_repo, cred: git_cred, branch: branch, {
       inside_sdp_image "helm", { 
