@@ -12,7 +12,7 @@ The Anchore library implements a comprehensive container image vulnerability and
 | Scan the container image built and pushed to a registry, with the image tag identifiers to scan fetched by get_images_to_build()
 
 | ``add_registry_creds()``
-| Add docker registry credentials to Anchore if they do not already exist, so it can pull an image from a private registry. Can run this step before `scan_container_image` to ensure Anchore has access to an image in a private registry.
+| Add docker registry credentials to Anchore if they do not already exist, so it can pull an image from a private registry. Can run this step before or within `scan_container_image` to ensure Anchore has access to an image in a private registry. To run within scan_container_image, just include `docker_registry_name` and `docker_registry_credential_id` in Anchore library config.
 
 |===
 
@@ -82,6 +82,11 @@ The Anchore library implements a comprehensive container image vulnerability and
 | Cluster context to use in kubeconfig
 | true
 
+| usePlugin
+| Boolean
+| Option to use Anchore plugin to run scan
+| false
+
 
 |===
 
@@ -102,13 +107,18 @@ libraries{
     //docker_registry_name = ""
     //k8s_credential
     //k8s_context
+    //usePlugin
   }
 }
 ----
 
+== Plugin Option
+
+Setting `usePlugin` to true runs an image scan through calling the Jenkins https://plugins.jenkins.io/anchore-container-scanner/[Anchore plugin]. This provides its own reporting UI, but still requires an Anchore engine to be running. The plugin must be configured in Manage Jenkins -> Configure System prior to use.
+
 == Results
 
-Results for this library are directly displayed in tabular form in the output of the scan_container_image() step, and also stored in parsable/raw form in your job's workspace as anchore_vulnerabilities.json and anchore_policy_evaluations.json for the vulnerability scan and policy evaluation result, respectively.
+Non-plugin generated results for this library are directly displayed in tabular form in the output of the scan_container_image() step, and also stored in parsable/raw form in your job's workspace as anchore_vulnerabilities.json and anchore_policy_evaluations.json for the vulnerability scan and policy evaluation result, respectively.
 
 == External Dependencies 
 
@@ -116,5 +126,5 @@ The Anchore library requires that an on-premises Anchore Enterprise or Anchore E
 
 == Troubleshooting
 
-The library will output both the raw HTTP as well as any JSON error payloads that may be returned when attempting to access the Anchore API.  As this library is mostly a client, typically issues will be due to a configuration or other problem with the Anchore Engine installation.  See https://docs.anchore.com/current/docs/troubleshooting/[Anchore Troubleshooting Guide] for help interpreting Anchore Engine error responses and common configuration issues.
+The library non-plugin generated outpu includes both the raw HTTP as well as any JSON error payloads that may be returned when attempting to access the Anchore API.  As this library is mostly a client, typically issues will be due to a configuration or other problem with the Anchore Engine installation.  See https://docs.anchore.com/current/docs/troubleshooting/[Anchore Troubleshooting Guide] for help interpreting Anchore Engine error responses and common configuration issues.
 
