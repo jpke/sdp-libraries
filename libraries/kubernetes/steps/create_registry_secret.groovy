@@ -36,7 +36,7 @@ void call(app_env = []){
     /*
        namespace for secret
     */
-		def namespace = app_env.deployment_namespace ?:
+		def deployment_namespace = app_env.deployment_namespace ?:
 										config.deployment_namespace  ?:
 										"default"
     /*
