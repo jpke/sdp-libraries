@@ -53,7 +53,7 @@ void call(app_env = []){
                   sh "kubectl create secret docker-registry $secret_name -n $deployment_namespace --docker-server=$docker_registry_addr --docker-username=$DOCKER_USERNAME --docker-password=$DOCKER_PASSWORD"
               }
           } catch (e) {
-              println "Secret not created: $e"
+              println "Secret not created: $e.getMessage()"
           }
       }
   }
