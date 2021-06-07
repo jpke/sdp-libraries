@@ -223,6 +223,11 @@ libraries{
 | 
 | app_env
 
+| release_namespace
+| Optional Kubernetes namespaces to specificy deploy helm release into; defaults to namespace specified in k8s_context
+| null
+| both
+
 | promote_previous_image
 | Whether or not to promote a previously-built image
 | (Boolean) true
