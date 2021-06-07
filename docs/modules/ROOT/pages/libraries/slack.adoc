@@ -2,9 +2,46 @@
 
 Slack is a collection of tools and services that helps teams collaborate and work more efficiently. Services that it provides include a messaging platform as well as the capability to integrate with other 3rd party tools such as Trello, Jira, Splunk, Jenkins and more.
 
-==  Steps Contributed
+== Steps Contributed
 
-* slack()
+.Steps
+|===
+| *Step* | *Description* 
+
+| ``slack()``
+| provides a default post color and message reporting build status
+
+|===
+
+== Library Configuration
+
+[source,groovy]
+----
+libraries{
+  slack
+}
+----
+
+== Custom Message
+
+By default `slack` will report whether the build was successful or a failure, and include a link to the Jenkins job. This default message can be overridden by including a string as an arguement. For example, a Jenkinsfile might call slack with:
+
+[source,groovy]
+----
+String messageStatus = currentBuild.result ?: 'Success' // handles null case when job is still in progress at time of call to slack
+
+String customMessage = """
+    *${env.JOB_NAME}* `${messageStatus}`
+    <${env.GIT_URL.replace('.git', '')}/commit/${env.GIT_SHA}|Git commit:> `${env.GIT_SHA}`
+    <${env.BUILD_URL}|Build Details>
+    Scan:
+        <${env.BUILD_URL}lighthousereport/|Lighthouse>
+    Deployment:
+        <https://argocd.${ip}.nip.io/applications/${env.REPO_NAME}|ArgoCD>
+""".stripIndent()
+
+slack(customMessage)
+----
 
 ==  External Dependencies
 

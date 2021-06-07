@@ -64,23 +64,23 @@ The Anchore library implements a comprehensive container image vulnerability and
 
 | docker_registry_credential_id
 | String
-| Credential id of private docker registry
-| true
+| Credential id of private docker registry (required if setting add_registry_creds = true)
+| docker-registry
 
 | docker_registry_name
 | String
 | Address of private docker registry
-| true
+| ""
 
 | k8s_credential
 | String
 | Credential id of kubeconfig credential
-| true
+| null
 
 | k8s_context
 | String
 | Cluster context to use in kubeconfig
-| true
+| null
 
 | add_registry_creds
 | Boolean
@@ -94,7 +94,7 @@ The Anchore library implements a comprehensive container image vulnerability and
 
 | bailOnFail
 | Boolean
-| Option to stop pipeline is Anchore plugin scan fails to satisfy policy
+| Option to stop pipeline if Anchore plugin scan fails to satisfy policy
 | true
 
 

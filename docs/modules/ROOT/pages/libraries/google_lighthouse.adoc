@@ -76,7 +76,7 @@ libraries{
     url = "https://google.com"
     thresholds{
       performance{
-        fail = 75
+        fail = 75.0
       }
     }
   }

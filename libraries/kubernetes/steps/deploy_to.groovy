@@ -53,6 +53,16 @@ void call(app_env){
                   app_env.short_name   ?:
                   {error "App Env Must Specify release_name or short_name"}()
 
+    /*
+       helm release name.
+       will use "release_name" if present on app env object
+       or will use "short_name" if present on app_env object.
+       will fail otherwise.
+    */
+    def release_namespace = app_env.release_namespace ?:
+                            app_env.release_namespace ?:
+                            null
+
 
     /*
        values file to be used when deploying chart
@@ -102,7 +112,7 @@ void call(app_env){
         withKubeConfig([credentialsId: k8s_credential , contextName: k8s_context]) {
             dir(working_directory){
                 this.update_values_file( values_file, config_repo )
-                this.do_release release, values_file
+                this.do_release release, values_file, release_namespace
                 this.push_config_update values_file
             }
         }
@@ -124,8 +134,9 @@ void update_values_file(values_file, config_repo){
 
 }
 
-void do_release(release, values_file){
-  sh "helm upgrade --install -f ${values_file} ${release} ."
+void do_release(release, values_file, release_namespace){
+  String release_namespace_string = release_namespace ? "-n ${release_namespace}" : ""
+  sh "helm upgrade --install ${release_namespace} -f ${values_file} ${release} ."
 }
 
 void push_config_update(values_file){
