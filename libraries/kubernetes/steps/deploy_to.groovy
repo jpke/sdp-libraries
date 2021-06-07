@@ -60,7 +60,7 @@ void call(app_env){
        will fail otherwise.
     */
     def release_namespace = app_env.release_namespace ?:
-                            app_env.release_namespace ?:
+                            config.release_namespace  ?:
                             null
 
 
