@@ -136,7 +136,7 @@ void update_values_file(values_file, config_repo){
 
 void do_release(release, values_file, release_namespace){
   String release_namespace_string = release_namespace ? "-n ${release_namespace}" : ""
-  sh "helm upgrade --install ${release_namespace} -f ${values_file} ${release} ."
+  sh "helm upgrade --install ${release_namespace_string} -f ${values_file} ${release} ."
 }
 
 void push_config_update(values_file){
