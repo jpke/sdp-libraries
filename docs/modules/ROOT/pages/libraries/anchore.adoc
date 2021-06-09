@@ -12,7 +12,7 @@ The Anchore library implements a comprehensive container image vulnerability and
 | Scan the container image built and pushed to a registry, with the image tag identifiers to scan fetched by get_images_to_build()
 
 | ``add_registry_creds()``
-| Add docker registry credentials to Anchore if they do not already exist, so it can pull an image from a private registry. Can run this step before or within `scan_container_image` to ensure Anchore has access to an image in a private registry. To run within scan_container_image, just include set `add_registry_creds = true` in Anchore library config.
+| Add docker registry credentials to Anchore if they do not already exist. This enables Anchore Engine to pull an image from a private registry. This step can run before or within `scan_container_image`. To run within `scan_container_image`, just include set `add_registry_creds = true` in Anchore library config.
 
 |===
 

@@ -24,32 +24,32 @@ void call(app_env = null){
         /*
         Docker registry creds for pulling helm image (has kubectl)
         */
-        def docker_registry_credential_id = app_env?.docker_registry_credential_id   ?: 
-                                                config.docker_registry_credential_id ?: 
+        def docker_registry_credential_id = app_env?.anchore?.docker_registry_credential_id ?: 
+                                                config.docker_registry_credential_id        ?: 
                                                 "docker_registry"
                                                 
-        def docker_registry_name = app_env?.docker_registry_name    ?: 
-                                        config.docker_registry_name ?: 
+        def docker_registry_name = app_env?.anchore?.docker_registry_name ?: 
+                                        config.docker_registry_name       ?: 
                                         ""
 
         /*
         k8s credential with kubeconfig 
         */
-        def k8s_credential = app_env?.k8s_credential  ?:
-                                config.k8s_credential ?:
+        def k8s_credential = app_env?.anchore?.k8s_credential ?:
+                                config.k8s_credential         ?:
                                 {error "Kubernetes Credential Not Defined"}()
         /*
         k8s context
         */
-        def k8s_context = app_env?.k8s_context ?:
-                            config.k8s_context ?:
+        def k8s_context = app_env?.anchore?.k8s_context ?:
+                            config.k8s_context          ?:
                             {error "Kubernetes Context Not Defined"}()
 
         /*
         Anchore engine url
         */
-        env.ANCHORE_ENGINE_URL = app_env?.anchore_engine_url  ?: 
-                                    config.anchore_engine_url ?: 
+        env.ANCHORE_ENGINE_URL = app_env?.anchore?.anchore_engine_url ?: 
+                                    config.anchore_engine_url         ?: 
                                     {error "Anchore Engine Url Not Defined"}()
 
         try {
