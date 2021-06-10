@@ -17,34 +17,34 @@ void call(app_env = []){
     /*
        k8s context
     */
-    def k8s_context = app_env.k8s_context ?:
-                  config.k8s_context      ?:
-                  {error "Kubernetes Context Not Defined"}()
+    def k8s_context = app_env.k8s_context  ?:
+												config.k8s_context ?:
+												{error "Kubernetes Context Not Defined"}()
 
     /*
        docker cred
     */
 		def docker_registry_cred = app_env.docker_registry_cred ?:
-                               config.docker_registry_cred  ?:
-															 {error "Docker Registry Credential Not Defined"}()
+																config.docker_registry_cred ?:
+																{error "Docker Registry Credential Not Defined"}()
     /*
        docker registry address
     */
 		def docker_registry_addr = app_env.docker_registry_addr ?:
-                               config.docker_registry_addr  ?:
-															 {error "Docker Registry Address Not Defined"}()
+																config.docker_registry_addr ?:
+																{error "Docker Registry Address Not Defined"}()
     /*
        namespace for secret
     */
-		def release_namespace = app_env.release_namespace ?:
-										config.release_namespace  ?:
-										"default"
+		def release_namespace = app_env.release_namespace  ?:
+															config.release_namespace ?:
+															"default"
     /*
        name of secret
     */
-		def secret_name = app_env.deployment_image_pull_secret_name ?:
-											config.deployment_image_pull_secret_name  ?:
-											"registry"
+		def secret_name = app_env.deployment_image_pull_secret_name  ?:
+												config.deployment_image_pull_secret_name ?:
+												"registry"
 
   inside_sdp_image "helm", {
 			withKubeConfig([credentialsId: k8s_credential , contextName: k8s_context]) {

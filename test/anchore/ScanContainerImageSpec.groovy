@@ -25,7 +25,6 @@ public class ScanContainerImageSpec extends JTEPipelineSpecification {
     ScanContainerImage = loadPipelineScriptForStep("anchore","scan_container_image")
     ScanContainerImage.getBinding().setVariable("config", [docker_registry_credential_id: "docker-registry-appenv", usePlugin: true])
 
-    // ScanContainerImage.getBinding().setVariable("env", env)
     explicitlyMockPipelineVariable("out")
     explicitlyMockPipelineVariable("user")
     explicitlyMockPipelineVariable("pass")
