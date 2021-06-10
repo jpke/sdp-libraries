@@ -10,6 +10,15 @@ public class ScanContainerImageSpec extends JTEPipelineSpecification {
   def ScanContainerImage = null
 
   def app_env = [:]
+	def newAnchoreImageMock = [
+		[
+			imageDigest: "sha256:b9ab08c878c9e384835c193fd08c8e25cc7780b3fdb2ad26b144b502ec978eca",
+			analysis_status: "analyzed",
+			image_detail: [
+				imageId: "04fdc20ced95dcafb9120053ee44e936b1d897f177e06d90c3f5e50bf7d56fa2"
+			]
+		]
+	]
 
   def setup() {
     app_env = [anchore: [docker_registry_credential_id: "docker-registry-appenv"]]
@@ -54,27 +63,63 @@ public class ScanContainerImageSpec extends JTEPipelineSpecification {
     when:
       ScanContainerImage(app_env)
     then:
-      1 * getPipelineMock("anchore")(*)
-      1 * getPipelineMock("anchore")([name:'anchore_images', engineCredentialsId:null, annotations:[], policyBundleId:'', bailOnFail:true])
+      1 * getPipelineMock("anchore").toString()
   }
 
-  // def "Calls Anchore plugin with bailOnFail = true by default" () {
-  //   setup:
-  //     ScanContainerImage.getBinding().setVariable("config", [usePlugin: true])
-  //   when:
-  //     ScanContainerImage(app_env)
-  //   then:
-	// 		1 * getPipelineMock("anchore")(_) >> {_arguments -> 
-  //           assert _arguments[0][5] == [bailOnFail:true]
-  //     }
-  // }
+  def "Calls Anchore plugin with with intended default args" () {
+    setup:
+      ScanContainerImage.getBinding().setVariable("config", [usePlugin: true])
+    when:
+      ScanContainerImage(app_env)
+    then:
+			1 * getPipelineMock("anchore")(_) >> {_arguments -> 
+            assert _arguments[0].name == 'anchore_images'
+            assert _arguments[0].engineCredentialsId == null
+            assert _arguments[0].annotations == []
+            assert _arguments[0].policyBundleId == ""
+            assert _arguments[0].bailOnFail == true
+      }
+  }
 
-//   def "Fails if npm method is not listed in package.json scripts" () {
-//     setup:
-//       ScanContainerImage.getBinding().setVariable("config", [unit_test: [script: "not_found"]])
-//     when:
-//       ScanContainerImage("unit_test")
-//     then:
-//       1 * getPipelineMock("error")("stepName 'not_found' not found in package.json scripts")
-//   }
+  def "Calls Anchore plugin with override args when they are present in Library config" () {
+    setup:
+			def configArgs = [
+				usePlugin: true,
+				cred: "test-cred",
+				annotations: [[key: 'image_owner', value: 'my_team']],
+				policyBundleId: "myUUID",
+				bailOnFail: false
+			]
+      ScanContainerImage.getBinding().setVariable("config", configArgs)
+    when:
+      ScanContainerImage(app_env)
+    then:
+			1 * getPipelineMock("anchore")(_) >> {_arguments -> 
+            assert _arguments[0].name == 'anchore_images'
+            assert _arguments[0].engineCredentialsId == configArgs.cred
+            assert _arguments[0].annotations == configArgs.annotations
+            assert _arguments[0].policyBundleId == configArgs.policyBundleId
+            assert _arguments[0].bailOnFail == configArgs.bailOnFail
+      }
+  }
+
+	def "Skips Anchore plugin when usePlugin is undefined in Library config" () {
+    setup:
+      ScanContainerImage.getBinding().setVariable("config", [
+				perform_vulnerability_scan: false,
+				perform_policy_evaluation: false
+			])
+			explicitlyMockPipelineStep("readJSON")
+			getPipelineMock("readJSON")([file: "new_anchore_image.json"]) >> {
+				return newAnchoreImageMock
+			}
+			getPipelineMock("readJSON")([file: "new_anchore_image_check.json"]) >> {
+				return newAnchoreImageMock
+			}
+    when:
+      ScanContainerImage(app_env)
+    then:
+      0 * getPipelineMock("anchore").toString()
+  }
+
 }
