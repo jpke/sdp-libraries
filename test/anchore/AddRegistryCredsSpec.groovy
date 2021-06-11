@@ -26,9 +26,13 @@ public class AddRegistryCredsSpec extends JTEPipelineSpecification {
 
 		explicitlyMockPipelineVariable("out")
 		explicitlyMockPipelineVariable("usernamePassword")
+    explicitlyMockPipelineVariable("ANCHORE_ENGINE_URL")
+    explicitlyMockPipelineVariable("ANCHORE_USERNAME")
+    explicitlyMockPipelineVariable("ANCHORE_PASSWORD")
+    explicitlyMockPipelineVariable("REGISTRY_USERNAME")
+    explicitlyMockPipelineVariable("REGISTRY_PASSWORD")
     explicitlyMockPipelineStep("inside_sdp_image")
     explicitlyMockPipelineStep("withKubeConfig")
-
   }
 
   def "Fails when required inputs are not provided" () {
@@ -56,12 +60,12 @@ public class AddRegistryCredsSpec extends JTEPipelineSpecification {
       0 * getPipelineMock("error")("Kubernetes Credential Not Defined")
       0 * getPipelineMock("error")("Kubernetes Context Not Defined")
       0 * getPipelineMock("error")("Anchore Engine Url Not Defined")
-			1 * getPipelineMock("usernamePassword.call")([credentialsId:'appenv_docker_registry', usernameVariable:'REGISTRY_USERNAME', passwordVariable:'REGISTRY_PASSWORD'])
+			1 * getPipelineMock("usernamePassword.call")([credentialsId:app_env.anchore.docker_registry_credential_id, usernameVariable:'REGISTRY_USERNAME', passwordVariable:'REGISTRY_PASSWORD'])
 			1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
             assert _arguments[0][0].credentialsId == app_env.anchore.k8s_credential
             assert _arguments[0][0].contextName == app_env.anchore.k8s_context
       }
-			// 1 * getPipelineMock("sh")({it =~ /curl --header.*appenv_anchore_engine_url.*/}) // need to debug why this is not being called
+			1 * getPipelineMock("sh")({it =~ /curl --header.*appenv_anchore_engine_url.*appenv_docker_reg.*/})
   }
 
   def "Uses Library config when Application Environment config not available" () {
@@ -73,12 +77,12 @@ public class AddRegistryCredsSpec extends JTEPipelineSpecification {
       0 * getPipelineMock("error")("Kubernetes Credential Not Defined")
       0 * getPipelineMock("error")("Kubernetes Context Not Defined")
       0 * getPipelineMock("error")("Anchore Engine Url Not Defined")
-			1 * getPipelineMock("usernamePassword.call")([credentialsId:'config_docker_registry', usernameVariable:'REGISTRY_USERNAME', passwordVariable:'REGISTRY_PASSWORD'])
+			1 * getPipelineMock("usernamePassword.call")([credentialsId:fullConfig.docker_registry_credential_id, usernameVariable:'REGISTRY_USERNAME', passwordVariable:'REGISTRY_PASSWORD'])
 			1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
             assert _arguments[0][0].credentialsId == fullConfig.k8s_credential
             assert _arguments[0][0].contextName == fullConfig.k8s_context
       }
-			// 1 * getPipelineMock("sh")({it =~ /curl --header.*config_anchore_engine_url.*/}) // need to debug why this is not being called
+			1 * getPipelineMock("sh")({it =~ /curl --header.*config_anchore_engine_url.*config_docker_reg.*/})
   }
 
 }

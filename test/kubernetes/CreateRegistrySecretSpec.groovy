@@ -26,9 +26,10 @@ public class CreateRegistrySecretSpec extends JTEPipelineSpecification {
 
     explicitlyMockPipelineVariable("out")
     explicitlyMockPipelineVariable("usernamePassword")
+    explicitlyMockPipelineVariable("DOCKER_USERNAME")
+    explicitlyMockPipelineVariable("DOCKER_PASSWORD")
     explicitlyMockPipelineStep("inside_sdp_image")
     explicitlyMockPipelineStep("withKubeConfig")
-
   }
 
   def "Fails when required inputs are not provided" () {
@@ -39,7 +40,7 @@ public class CreateRegistrySecretSpec extends JTEPipelineSpecification {
       1 * getPipelineMock("error")("Kubernetes Context Not Defined")
       1 * getPipelineMock("error")("Docker Registry Credential Not Defined")
       1 * getPipelineMock("error")("Docker Registry Address Not Defined")
-      // 1 * getPipelineMock("sh")("kubectl create secret docker-registry registry -n default --docker-server=null --docker-username=null --docker-password=null) // need to debug why this is not called
+      1 * getPipelineMock("sh")({it =~ /kubectl create secret docker-registry registry -n default --docker-server=null.*/})
   }
 
   def "Uses Application Environment config when available" () {
@@ -67,7 +68,7 @@ public class CreateRegistrySecretSpec extends JTEPipelineSpecification {
 				assert _arguments[0][0].credentialsId == app_env.k8s_credential
 				assert _arguments[0][0].contextName == app_env.k8s_context
 				}
-      // 1 * getPipelineMock("sh")("kubectl create secret docker-registry app_env_registry -n app_env_release_namespace --docker-server=app_env_docker_reg --docker-username=null --docker-password=null) // need to debug why this is not called
+			1 * getPipelineMock("sh")({it =~ /kubectl create secret docker-registry app_env_registry -n app_env_release_namespace --docker-server=app_env_docker_reg.*/})
   }
 
   def "Uses Library config when Application Environment config not available" () {
@@ -87,7 +88,7 @@ public class CreateRegistrySecretSpec extends JTEPipelineSpecification {
 				assert _arguments[0][0].credentialsId == fullConfig.k8s_credential
 				assert _arguments[0][0].contextName == fullConfig.k8s_context
 				}
-      // 1 * getPipelineMock("sh")("kubectl create secret docker-registry app_env_registry -n app_env_release_namespace --docker-server=app_env_docker_reg --docker-username=null --docker-password=null) // need to debug why this is not called
+			1 * getPipelineMock("sh")({it =~ /kubectl create secret docker-registry config_registry -n config_release_namespace --docker-server=config_docker_reg.*/})
   }
 
 }
