@@ -46,13 +46,15 @@ public class AddRegistryCredsSpec extends JTEPipelineSpecification {
 
   def "Uses Application Environment config when available" () {
 		setup:
-			app_env = [anchore: [
-				docker_registry_credential_id: "appenv_docker_registry",
-				docker_registry_name: "appenv_docker_reg",
-				k8s_credential: "appenv_k8s_credential",
-				k8s_context: "appenv_k8s_context",
-				anchore_engine_url: "appenv_anchore_engine_url"
-			]]
+			app_env = [
+        anchore: [
+          docker_registry_credential_id: "appenv_docker_registry",
+          docker_registry_name: "appenv_docker_reg",
+          anchore_engine_url: "appenv_anchore_engine_url"
+        ],
+        k8s_credential: "appenv_k8s_credential",
+				k8s_context: "appenv_k8s_context"
+      ]
 			AddRegistryCreds.getBinding().setVariable("config", fullConfig)
     when:
       AddRegistryCreds(app_env)
@@ -62,8 +64,8 @@ public class AddRegistryCredsSpec extends JTEPipelineSpecification {
       0 * getPipelineMock("error")("Anchore Engine Url Not Defined")
 			1 * getPipelineMock("usernamePassword.call")([credentialsId:app_env.anchore.docker_registry_credential_id, usernameVariable:'REGISTRY_USERNAME', passwordVariable:'REGISTRY_PASSWORD'])
 			1 * getPipelineMock("withKubeConfig")(_) >> {_arguments -> 
-            assert _arguments[0][0].credentialsId == app_env.anchore.k8s_credential
-            assert _arguments[0][0].contextName == app_env.anchore.k8s_context
+            assert _arguments[0][0].credentialsId == app_env.k8s_credential
+            assert _arguments[0][0].contextName == app_env.k8s_context
       }
 			1 * getPipelineMock("sh")({it =~ /curl --header.*appenv_anchore_engine_url.*appenv_docker_reg.*/})
   }

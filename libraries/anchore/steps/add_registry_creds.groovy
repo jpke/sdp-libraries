@@ -35,14 +35,14 @@ void call(app_env = null){
         /*
         k8s credential with kubeconfig 
         */
-        def k8s_credential = app_env?.anchore?.k8s_credential ?:
-                                config.k8s_credential         ?:
+        def k8s_credential = app_env?.k8s_credential  ?:
+                                config.k8s_credential ?:
                                 {error "Kubernetes Credential Not Defined"}()
         /*
         k8s context
         */
-        def k8s_context = app_env?.anchore?.k8s_context ?:
-                            config.k8s_context          ?:
+        def k8s_context = app_env?.k8s_context ?:
+                            config.k8s_context ?:
                             {error "Kubernetes Context Not Defined"}()
 
         /*
