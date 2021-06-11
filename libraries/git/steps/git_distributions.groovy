@@ -52,7 +52,7 @@ void init_env(){
         env.ORG_NAME = parts.getAt(0)
         env.REPO_NAME = parts[1..-1].join("/") - ".git"
         env.GIT_SHA = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-        env.AUTHOR_NAME = sh(script: "git show -s --pretty=\"%an\"", returnStdout: true)
+        env.AUTHOR_NAME = sh(script: "git show -s --pretty=\"%an\"", returnStdout: true).trim()
 
         if (env.CHANGE_TARGET){
             env.GIT_BUILD_CAUSE = "pr"
