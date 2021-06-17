@@ -32,6 +32,9 @@ void call(String stepName, app_env = []) {
                         source ~/.bashrc
                         nvm install $node_version
                         nvm version
+
+                        echo "SELENIUM_SERVER_DOMAIN: $SELENIUM_SERVER_DOMAIN"
+                        echo "APP_DOMAIN: $APP_DOMAIN"
                         
                         npm $npm_install
                         npm run $scriptCommand
@@ -42,6 +45,9 @@ void call(String stepName, app_env = []) {
                         source ~/.bashrc
                         nvm install $node_version
                         nvm version
+
+                        echo "SELENIUM_SERVER_DOMAIN: $SELENIUM_SERVER_DOMAIN"
+                        echo "APP_DOMAIN: $APP_DOMAIN"
 
                         npm run $scriptCommand
                     '''
